@@ -18,7 +18,7 @@ var (
 	addr = os.Getenv("MORE_SMTP_ADDR")
 	user = os.Getenv("MORE_SMTP_USER")
 	pass = os.Getenv("MORE_SMTP_PASS")
-	t    = template.Must(template.New("more").Parse("From: {{.From}}\r\nTo: {{.To}}\r\nSubject: {{.Subject}}\r\n\r\n{{.Body}}"))
+	t    = template.Must(template.New("more").Parse("From: {{.From}}\r\nTo: {{.To}}\r\nSubject: {{.Subject}}\r\nContent-Type: {{.ContentType}}\r\n\r\n{{.Body}}"))
 )
 
 type Word struct {
@@ -59,11 +59,12 @@ func main() {
 
 func notification(word *Word) {
 	type Data struct {
-		From    string
-		To      string
-		Subject string
-		Body    string
-		Word    *Word
+		From        string
+		To          string
+		Subject     string
+		ContentType string
+		Body        string
+		Word        *Word
 	}
 
 	if addr == "" {
@@ -81,11 +82,12 @@ func notification(word *Word) {
 	subject := "早辰一读"
 	body += strings.Join([]string{fmt.Sprintf("《%s》", word.Title), word.Author, word.Content}, "\n\n")
 	data := Data{
-		From:    fmt.Sprintf("%s <%s>", mime.BEncoding.Encode("UTF-8", "Monitor"), user),
-		To:      user,
-		Subject: mime.BEncoding.Encode("UTF-8", fmt.Sprintf("「MORE」%s", subject)),
-		Body:    body,
-		Word:    word,
+		From:        fmt.Sprintf("%s <%s>", mime.BEncoding.Encode("UTF-8", "Monitor"), user),
+		To:          user,
+		Subject:     mime.BEncoding.Encode("UTF-8", fmt.Sprintf("「MORE」%s", subject)),
+		ContentType: "text/plain; charset=utf-8",
+		Body:        body,
+		Word:        word,
 	}
 
 	var buf bytes.Buffer
