@@ -18,6 +18,7 @@ var (
 	addr = os.Getenv("MORE_SMTP_ADDR")
 	user = os.Getenv("MORE_SMTP_USER")
 	pass = os.Getenv("MORE_SMTP_PASS")
+	to   = os.Getenv("MORE_SMTP_TO")
 	t    = template.Must(template.New("more").Parse("From: {{.From}}\r\nTo: {{.To}}\r\nSubject: {{.Subject}}\r\nContent-Type: {{.ContentType}}\r\n\r\n{{.Body}}"))
 )
 
@@ -83,7 +84,7 @@ func notification(word *Word) {
 	body += strings.Join([]string{fmt.Sprintf("《%s》", word.Title), word.Author, word.Content}, "\n\n")
 	data := Data{
 		From:        fmt.Sprintf("%s <%s>", mime.BEncoding.Encode("UTF-8", "Monitor"), user),
-		To:          user,
+		To:          to,
 		Subject:     mime.BEncoding.Encode("UTF-8", fmt.Sprintf("「MORE」%s", subject)),
 		ContentType: "text/plain; charset=utf-8",
 		Body:        body,
@@ -97,7 +98,7 @@ func notification(word *Word) {
 	}
 
 	auth := smtp.PlainAuth("", user, pass, host)
-	if err := smtp.SendMail(addr, auth, user, []string{user}, buf.Bytes()); err != nil {
+	if err := smtp.SendMail(addr, auth, user, strings.Split(to, ","), buf.Bytes()); err != nil {
 		slog.Error("send notification fail", "err", err)
 		return
 	}
