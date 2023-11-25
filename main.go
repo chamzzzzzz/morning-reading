@@ -98,7 +98,15 @@ func notification(word *Word) {
 	}
 
 	auth := smtp.PlainAuth("", user, pass, host)
-	if err := smtp.SendMail(addr, auth, user, strings.Split(to, ","), buf.Bytes()); err != nil {
+
+	for i := 0; i < 3; i++ {
+		if err = smtp.SendMail(addr, auth, user, strings.Split(to, ","), buf.Bytes()); err == nil {
+			break
+		}
+		slog.Error("send notification fail, retry after 1s", "err", err)
+		time.Sleep(time.Second)
+	}
+	if err != nil {
 		slog.Error("send notification fail", "err", err)
 		return
 	}
