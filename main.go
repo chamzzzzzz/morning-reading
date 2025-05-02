@@ -30,7 +30,10 @@ type Word struct {
 }
 
 type Collection struct {
-	Words []*Word `json:"words"`
+	Title  string  `json:"title"`
+	Author string  `json:"author"`
+	Type   string  `json:"type"`
+	Words  []*Word `json:"words"`
 }
 
 func main() {
@@ -55,10 +58,10 @@ func main() {
 	i := day % len(c.Words)
 	word := c.Words[i]
 	slog.Info("today's word", "day", day, "index", i, "title", word.Title, "author", word.Author, "type", word.Type)
-	notification(word)
+	notification(&c, word)
 }
 
-func notification(word *Word) {
+func notification(collection *Collection, word *Word) {
 	type Data struct {
 		From        string
 		To          string
@@ -81,7 +84,21 @@ func notification(word *Word) {
 
 	body := ""
 	subject := "早辰一读"
-	body += strings.Join([]string{fmt.Sprintf("《%s》", word.Title), word.Author, word.Content}, "\n\n")
+	title := word.Title
+	if title == "" {
+		title = collection.Title
+		if title == "" {
+			title = "无题"
+		}
+	}
+	author := word.Author
+	if author == "" {
+		author = collection.Author
+		if author == "" {
+			author = "佚名"
+		}
+	}
+	body += strings.Join([]string{fmt.Sprintf("《%s》", title), author, word.Content}, "\n\n")
 	data := Data{
 		From:        fmt.Sprintf("%s <%s>", mime.BEncoding.Encode("UTF-8", "Monitor"), user),
 		To:          to,
